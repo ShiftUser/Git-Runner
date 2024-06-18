@@ -60,6 +60,9 @@ jobs:
           Expand-Archive -Path "C:\chromedriver_win32.zip" -DestinationPath "C:\chromedriver"
           $env:Path += ";C:\chromedriver"
 
+      - name: Set Time Zone to Eastern Time
+        run: tzutil /s "Eastern Standard Time"
+
       - name: List files in app directory
         run: dir app
 
@@ -101,6 +104,9 @@ jobs:
             Write-Output "Shift executable not found at $shiftPath."
           }
 
+      - name: Check if Shift is running
+        run: Get-Process -Name shift -ErrorAction SilentlyContinue
+
       - name: Take Screenshot
         run: |
           $screenshotPath = "C:\Users\runneradmin\Desktop\screenshot.png"
@@ -112,7 +118,7 @@ jobs:
           $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
           $bitmap.Save($screenshotPath, [System.Drawing.Imaging.ImageFormat]::Png)
           Write-Output "Screenshot taken: $screenshotPath"
-    
+
       - name: Upload Screenshot
         uses: actions/upload-artifact@v2
         with:
