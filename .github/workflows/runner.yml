@@ -1,0 +1,122 @@
+name: .NET CI
+
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: |
+            5.0.x
+            8.0.x
+
+      - name: Install WinAppDriver
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/microsoft/WinAppDriver/releases/download/v1.2.99/WindowsApplicationDriver-1.2.99-win-x86.exe" -OutFile "C:\WindowsApplicationDriver.exe"
+          Start-Process msiexec.exe -ArgumentList "/i C:\WindowsApplicationDriver.exe /quiet /norestart" -NoNewWindow -Wait
+
+      - name: Enable Developer Mode for WinAppDriver
+        run: Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1
+
+      - name: Install TightVNC
+        run: |
+          Invoke-WebRequest -Uri "https://www.tightvnc.com/download/2.8.84/tightvnc-2.8.84-gpl-setup-64bit.msi" -OutFile "C:\tightvnc.msi"
+          Start-Process msiexec.exe -ArgumentList "/i C:\tightvnc.msi /quiet /norestart" -NoNewWindow -Wait
+          Set-ItemProperty -Path "HKLM:\SOFTWARE\TightVNC\Server" -Name "Password" -Value ([BitConverter]::ToString((New-Object Security.Cryptography.MD5CryptoServiceProvider).ComputeHash([System.Text.Encoding]::Unicode.GetBytes("your_password"))).Replace("-",""))
+          New-ItemProperty -Path "HKLM:\SOFTWARE\TightVNC\Server" -Name "AcceptRFBConnections" -Value 1 -PropertyType DWord -Force
+          Start-Service -Name "tvnserver"
+
+      - name: Install Shift
+        run: |
+          Write-Output "Looking for Shift installer in the app/downloads directory..."
+          $shiftInstaller = Get-ChildItem -Path "app/downloads" -Filter "Shift*.exe" | Select-Object -First 1
+          if ($shiftInstaller) {
+            Write-Output "Found Shift installer: $($shiftInstaller.FullName)"
+            $process = Start-Process -FilePath $shiftInstaller.FullName -ArgumentList "/silent" -PassThru
+            $process.WaitForExit()
+            Write-Output "Shift installation completed."
+          } else {
+            throw "Shift installer is not available."
+          }
+
+      - name: Install Google Chrome
+        run: |
+          Invoke-WebRequest -Uri "https://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile "C:\chrome_installer.exe"
+          Start-Process -FilePath "C:\chrome_installer.exe" -ArgumentList "/silent /install" -NoNewWindow -Wait
+
+      - name: Install ChromeDriver
+        run: |
+          $chromeDriverVersion = Invoke-RestMethod -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
+          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$chromeDriverVersion/chromedriver_win32.zip" -OutFile "C:\chromedriver_win32.zip"
+          Expand-Archive -Path "C:\chromedriver_win32.zip" -DestinationPath "C:\chromedriver"
+          $env:Path += ";C:\chromedriver"
+
+      - name: List files in app directory
+        run: dir app
+
+      - name: Create solution file
+        run: |
+          dotnet new sln -n SeleniumDocker --force
+          dotnet sln SeleniumDocker.sln add src/SeleniumDocker.csproj
+        working-directory: app
+
+      - name: Restore dependencies
+        run: dotnet restore app/SeleniumDocker.sln
+
+      - name: Build
+        run: dotnet build app/SeleniumDocker.sln --configuration Debug --no-restore
+
+      - name: Run tests
+        run: dotnet test app/SeleniumDocker.sln --no-build --verbosity normal
+
+      - name: Install Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+      - name: Install ngrok using Chocolatey
+        run: choco install ngrok -y
+
+      - name: Start ngrok
+        run: |
+          ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+          ngrok tcp 5900 &
+
+      - name: Start Shift
+        run: |
+          $shiftPath = "$env:LOCALAPPDATA\Shift\chromium\shift.exe"
+          if (Test-Path $shiftPath) {
+            Start-Process -FilePath $shiftPath
+            Write-Output "Shift started successfully."
+          } else {
+            Write-Output "Shift executable not found at $shiftPath."
+          }
+
+      - name: Take Screenshot
+        run: |
+          $screenshotPath = "C:\Users\runneradmin\Desktop\screenshot.png"
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+          $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+          $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+          $bitmap.Save($screenshotPath, [System.Drawing.Imaging.ImageFormat]::Png)
+          Write-Output "Screenshot taken: $screenshotPath"
+    
+      - name: Upload Screenshot
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshot
+          path: C:\Users\runneradmin\Desktop\screenshot.png
+
+      - name: Wait for 2 Minutes
+        run: Start-Sleep -Seconds 120
