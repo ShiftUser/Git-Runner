@@ -60,8 +60,8 @@ jobs:
           Expand-Archive -Path "C:\chromedriver_win32.zip" -DestinationPath "C:\chromedriver"
           $env:Path += ";C:\chromedriver"
 
-      - name: Set Time Zone to Eastern Time
-        run: tzutil /s "Eastern Standard Time"
+      - name: Set Time Zone to Pacific Time
+        run: tzutil /s "Pacific Standard Time"
 
       - name: List files in app directory
         run: dir app
