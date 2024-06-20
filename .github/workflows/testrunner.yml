@@ -66,7 +66,8 @@ jobs:
         choco install microsoft-build-tools -y --no-progress
         choco install visualstudio2019buildtools -y --no-progress
         choco install visualstudio2022buildtools -y --no-progress
-        choco install windows-sdk-10.0.26624 -y --no-progress
+        choco install windows-sdk-10.0 -y --no-progress  # <-- This line was changed
+
 
     - name: Wait for 3 Minutes
       run: Start-Sleep -Seconds 180  
