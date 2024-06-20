@@ -37,6 +37,15 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1     
 
+    - name: Install Windows Application Packaging Project SDK
+      run: |
+        choco install microsoft-build-tools -y
+        choco install visualstudio2019buildtools -y
+        choco install visualstudio2022buildtools -y
+        choco install windows-sdk-10.0 -y
+        choco install windows-sdk-10.0.18362.0 -y
+        choco install microsoft-windows-sdk-for-windows-store-apps -y
+        
     - name: Install WinAppDriver
       run: |
         Invoke-WebRequest -Uri "https://github.com/microsoft/WinAppDriver/releases/download/v1.2.99/WindowsApplicationDriver-1.2.99-win-x86.exe" -OutFile "C:\WindowsApplicationDriver.exe"
