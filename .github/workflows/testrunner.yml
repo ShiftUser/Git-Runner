@@ -17,7 +17,7 @@ jobs:
 
     env:
       Solution_Name: app/SeleniumDocker.sln
-      Test_Project_Path: app/src/SeleniumDocker.Tests/SeleniumDocker.Tests.csproj
+      Test_Project_Path: app/src/SeleniumDocker.csproj
       Wap_Project_Directory: app
       Wap_Project_Path: app/.wapproj
 
