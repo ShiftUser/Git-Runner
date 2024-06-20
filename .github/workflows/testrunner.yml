@@ -41,9 +41,9 @@ jobs:
       run: |
         Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
         choco feature enable -n=allowGlobalConfirmation
-        
+
     - name: Check installed Chocolatey packages
-      run: choco list --local-only
+      run: choco list -l
 
     - name: Update Chocolatey packages
       run: choco upgrade all -y --no-progress
