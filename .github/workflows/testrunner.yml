@@ -27,15 +27,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Create global.json file
-      run: |
-          echo {
-            \"sdk\": {
-              \"version\": \"8.0.204\"
-            }
-          } > global.json
-
-
     - name: Set up .NET
       uses: actions/setup-dotnet@v4
       with:
