@@ -48,7 +48,8 @@ jobs:
     - name: Update Chocolatey packages in small steps - Part 1
       run: |
         choco upgrade 7zip.install awscli azcopy10 -y --no-progress
-        refreshenv
+        Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+        & refreshenv
         
     - name: Wait for 5 Minutes
       run: Start-Sleep -Seconds 300   
@@ -56,7 +57,8 @@ jobs:
     - name: Update Chocolatey packages in small steps - Part 2
       run: |
         choco upgrade cmake.install gradle hg imagemagick.app InnoSetup kubernetes-cli kubernetes-helm nodejs.install -y --no-progress
-        refreshenv
+        Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+        & refreshenv
 
     - name: Wait for 5 Minutes
       run: Start-Sleep -Seconds 300  
