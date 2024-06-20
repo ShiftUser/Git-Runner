@@ -43,7 +43,7 @@ jobs:
         choco feature enable -n=allowGlobalConfirmation
 
     - name: Check installed Chocolatey packages
-      run: choco list -l
+      run: choco list --local-only -r
 
     - name: Update Chocolatey packages
       run: choco upgrade all -y --no-progress
