@@ -16,10 +16,10 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: SeleniumDocker.sln
-      Test_Project_Path: app/SeleniumDocker.Tests/SeleniumDocker.Tests.csproj
-      Wap_Project_Directory: app/WapProject
-      Wap_Project_Path: app/WapProject/WapProject.wapproj
+      Solution_Name: app/SeleniumDocker.sln
+      Test_Project_Path: app/src/SeleniumDocker.Tests/SeleniumDocker.Tests.csproj
+      Wap_Project_Directory: app
+      Wap_Project_Path: app/.wapproj
 
     steps:
     - name: Checkout repository
@@ -84,7 +84,7 @@ jobs:
     - name: Create solution file
       run: |
         dotnet new sln -n SeleniumDocker --force
-        dotnet sln SeleniumDocker.sln add src/SeleniumDocker.csproj
+        dotnet sln app/SeleniumDocker.sln add app/src/SeleniumDocker.csproj
       working-directory: app
 
     - name: Restore dependencies
@@ -93,8 +93,11 @@ jobs:
     - name: Build
       run: dotnet build app/SeleniumDocker.sln --configuration ${{ matrix.configuration }} --no-restore
 
+    - name: Verify Build Output
+      run: dir app/src/bin/${{ matrix.configuration }}/net5.0
+
     - name: Execute unit tests
-      run: dotnet test app/SeleniumDocker.sln --no-build --verbosity normal
+      run: dotnet test app/SeleniumDocker.sln --configuration ${{ matrix.configuration }} --no-build --verbosity normal
 
     - name: Install Chocolatey
       run: |
@@ -140,17 +143,14 @@ jobs:
         name: screenshot
         path: C:\Users\runneradmin\Desktop\screenshot.png
 
-    - name: Wait for 2 Minutes
-      run: Start-Sleep -Seconds 120
-
     - name: Decode the pfx
       run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
         $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
     - name: Create the app package
-      run: msbuild $env:Wap_Project_Path /p:Configuration=${{ matrix.configuration }} /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
+      run: msbuild $env:Wap_Project_Path /p:Configuration=${{ matrix.configuration }} /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=$certificatePath /p:PackageCertificatePassword=${{ secrets.PFX_KEY }}
       env:
         Appx_Bundle: Always
         Appx_Bundle_Platforms: x86|x64
@@ -158,7 +158,7 @@ jobs:
         Configuration: ${{ matrix.configuration }}
 
     - name: Remove the pfx
-      run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
+      run: Remove-Item -path $certificatePath
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.Windows.ApplicationPackaging.Project">
+  <PropertyGroup>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion>10.0.18362.0</TargetPlatformVersion>
+    <OutputType>AppxBundle</OutputType>
+    <AppxBundlePlatforms>x86;x64</AppxBundlePlatforms>
+    <AppxBundle>Always</AppxBundle>
+    <GenerateAppInstallerFile>false</GenerateAppInstallerFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AppxManifest Include="app/Package.appxmanifest" />
+    <Application Include="..\MyApp\bin\x64\$(Configuration)\MyApp.exe">
+      <Executable>MyApp.exe</Executable>
+      <EntryPoint>Windows.FullTrustApplication</EntryPoint>
+      <DisplayName>MyApp</DisplayName>
+      <Description>MyApp Description</Description>
+    </Application>
+  </ItemGroup>
+</Project>
