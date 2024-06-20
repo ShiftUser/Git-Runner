@@ -68,8 +68,8 @@ jobs:
         Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
         & refreshenv
 
-        - name: Install Windows Application Packaging Project SDK
-        run: |
+    - name: Install Windows Application Packaging Project SDK
+      run: |
           choco install microsoft-build-tools -y --no-progress --execution-timeout=1200
           choco install visualstudio2019buildtools -y --no-progress --execution-timeout=1200
           choco install visualstudio2022buildtools -y --no-progress --execution-timeout=1200
