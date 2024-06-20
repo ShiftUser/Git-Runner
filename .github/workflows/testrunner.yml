@@ -51,8 +51,7 @@ jobs:
         Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
         & refreshenv
         
-    - name: Wait for 5 Minutes
-      run: Start-Sleep -Seconds 300   
+      
 
     - name: Update Chocolatey packages in small steps - Part 2
       run: |
@@ -60,8 +59,7 @@ jobs:
         Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
         & refreshenv
 
-    - name: Wait for 2 Minutes
-      run: Start-Sleep -Seconds 120  
+     
 
     - name: Install Windows Application Packaging Project SDK
       run: |
@@ -70,8 +68,8 @@ jobs:
         choco install visualstudio2022buildtools -y --no-progress
         choco install windows-sdk-10.0.26624 -y --no-progress
 
-    - name: Wait for 5 Minutes
-      run: Start-Sleep -Seconds 300  
+    - name: Wait for 3 Minutes
+      run: Start-Sleep -Seconds 180  
 
     - name: Install WinAppDriver
       run: |
