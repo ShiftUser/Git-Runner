@@ -83,7 +83,8 @@ jobs:
 
     - name: Create solution file
       run: |
-        dotnet new sln -n SeleniumDocker --force
+        mkdir -p app/src
+        dotnet new sln -o app
         dotnet sln app/SeleniumDocker.sln add app/src/SeleniumDocker.csproj
       working-directory: app
 
