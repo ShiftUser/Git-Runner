@@ -18,8 +18,6 @@ jobs:
     env:
       Solution_Name: app/SeleniumDocker.sln
       Test_Project_Path: app/src/SeleniumDocker.csproj
-      Wap_Project_Directory: app
-      Wap_Project_Path: app/.wapproj
 
     steps:
     - name: Checkout repository
@@ -33,48 +31,26 @@ jobs:
         dotnet-version: |
           5.0.x
           8.0.x
-     
+
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1     
+      uses: microsoft/setup-msbuild@v1
 
     - name: Install Chocolatey
       run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
         choco feature enable -n=allowGlobalConfirmation
 
-    - name: Check installed Chocolatey packages
-      run: choco list --local-only -r
-
-    - name: Update Chocolatey packages in small steps - Part 1
+    - name: Install and Update Chocolatey Packages
       run: |
-        choco upgrade 7zip.install awscli azcopy10 -y --no-progress
+        choco upgrade 7zip.install awscli azcopy10 cmake.install gradle hg imagemagick.app InnoSetup kubernetes-cli kubernetes-helm nodejs.install -y --no-progress
         Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
         & refreshenv
-        
-      
-
-    - name: Update Chocolatey packages in small steps - Part 2
-      run: |
-        choco upgrade cmake.install gradle hg imagemagick.app InnoSetup kubernetes-cli kubernetes-helm nodejs.install -y --no-progress
-        Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-        & refreshenv
-
-    - name: Install Windows Application Packaging Project SDK
-      run: |
-          choco install microsoft-build-tools -y --no-progress --execution-timeout=1200
-          choco install visualstudio2019buildtools -y --no-progress --execution-timeout=1200
-          choco install visualstudio2022buildtools -y --no-progress --execution-timeout=1200
-          choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" -y --no-progress --execution-timeout=1200
-          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" -y --no-progress --execution-timeout=1200
-          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools" -y --no-progress --execution-timeout=1200
-      
- 
-    - name: Wait for 2 Minutes
-      run: Start-Sleep -Seconds 120  
-
-    - name: Install Windows SDK separately
-      run: |
-          choco install windows-sdk-10.0 -y --no-progress --execution-timeout=1200
+        choco install microsoft-build-tools visualstudio2019buildtools visualstudio2022buildtools -y --no-progress --execution-timeout=1200
+        choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" -y --no-progress --execution-timeout=1200
+        choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" --add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools -y --no-progress --execution-timeout=1200
+        choco install windows-sdk-10.0 -y --no-progress --execution-timeout=1200
 
     - name: Install WinAppDriver
       run: |
@@ -103,7 +79,6 @@ jobs:
           Write-Output "Shift installation completed."
         } else {
           throw "Shift installer is not available."
-        }
 
     - name: Install Google Chrome
       run: |
@@ -141,10 +116,6 @@ jobs:
     - name: Execute unit tests
       run: dotnet test app/SeleniumDocker.sln --configuration ${{ matrix.configuration }} --no-build --verbosity normal
 
-    - name: Install Chocolatey
-      run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-
     - name: Install ngrok using Chocolatey
       run: choco install ngrok -y
 
@@ -162,7 +133,6 @@ jobs:
           Write-Output "Shift started successfully."
         } else {
           Write-Output "Shift executable not found at $shiftPath."
-        }
 
     - name: Check if Shift is running
       run: Get-Process -Name shift -ErrorAction SilentlyContinue
@@ -190,14 +160,6 @@ jobs:
         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
         $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
-
-    - name: Create the app package
-      run: msbuild $env:Wap_Project_Path /p:Configuration=${{ matrix.configuration }} /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=$certificatePath /p:PackageCertificatePassword=${{ secrets.PFX_KEY }}
-      env:
-        Appx_Bundle: Always
-        Appx_Bundle_Platforms: x86|x64
-        Appx_Package_Build_Mode: StoreUpload
-        Configuration: ${{ matrix.configuration }}
 
     - name: Remove the pfx
       run: Remove-Item -path $certificatePath
