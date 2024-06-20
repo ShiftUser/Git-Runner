@@ -45,8 +45,21 @@ jobs:
     - name: Check installed Chocolatey packages
       run: choco list --local-only -r
 
-    - name: Update Chocolatey packages
-      run: choco upgrade all -y --no-progress
+    - name: Update Chocolatey packages in small steps - Part 1
+      run: |
+        choco upgrade 7zip.install awscli azcopy10 -y --no-progress
+        refreshenv
+        
+    - name: Wait for 5 Minutes
+      run: Start-Sleep -Seconds 300   
+
+    - name: Update Chocolatey packages in small steps - Part 2
+      run: |
+        choco upgrade cmake.install gradle hg imagemagick.app InnoSetup kubernetes-cli kubernetes-helm nodejs.install -y --no-progress
+        refreshenv
+
+    - name: Wait for 5 Minutes
+      run: Start-Sleep -Seconds 300  
 
     - name: Install Windows Application Packaging Project SDK
       run: |
@@ -54,6 +67,9 @@ jobs:
         choco install visualstudio2019buildtools -y --no-progress
         choco install visualstudio2022buildtools -y --no-progress
         choco install windows-sdk-10.0.26624 -y --no-progress
+
+    - name: Wait for 5 Minutes
+      run: Start-Sleep -Seconds 300  
 
     - name: Install WinAppDriver
       run: |
