@@ -60,8 +60,8 @@ jobs:
         Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
         & refreshenv
 
-    - name: Wait for 5 Minutes
-      run: Start-Sleep -Seconds 300  
+    - name: Wait for 2 Minutes
+      run: Start-Sleep -Seconds 120  
 
     - name: Install Windows Application Packaging Project SDK
       run: |
