@@ -68,21 +68,18 @@ jobs:
         Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
         & refreshenv
 
-    - name: Install Windows Application Packaging Project SDK
-      run: |
-            choco install microsoft-build-tools -y --no-progress
-            choco install visualstudio2019buildtools -y --no-progress
-            choco install visualstudio2022buildtools -y --no-progress
-            choco install windows-sdk-10.0 -y --no-progress
-            choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" -y --no-progress
-            choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" -y --no-progress
-            choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools" -y --no-progress
+        - name: Install Windows Application Packaging Project SDK
+        run: |
+          choco install microsoft-build-tools -y --no-progress --execution-timeout=1200
+          choco install visualstudio2019buildtools -y --no-progress --execution-timeout=1200
+          choco install visualstudio2022buildtools -y --no-progress --execution-timeout=1200
+          choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" -y --no-progress --execution-timeout=1200
+          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" -y --no-progress --execution-timeout=1200
+          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools" -y --no-progress --execution-timeout=1200
       
  
-  
-
-    - name: Wait for 3 Minutes
-      run: Start-Sleep -Seconds 180  
+    - name: Wait for 4 Minutes
+      run: Start-Sleep -Seconds 240  
 
     - name: Install WinAppDriver
       run: |
