@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        configuration: [Build, Test]
 
     runs-on: windows-latest
 
@@ -45,17 +45,7 @@ jobs:
         Start-Service -Name "tvnserver"
 
     - name: Install Dependencies
-      run: |
-        dotnet add ${{ env.Test_Project_Path }} package Appium.WebDriver
-        dotnet add ${{ env.Test_Project_Path }} package Coverlet.Collector
-        dotnet add ${{ env.Test_Project_Path }} package ExtentReports.Core
-        dotnet add ${{ env.Test_Project_Path }} package FluentAssertions
-        dotnet add ${{ env.Test_Project_Path }} package Microsoft.Extensions.Configuration.EnvironmentVariables
-        dotnet add ${{ env.Test_Project_Path }} package Microsoft.Extensions.Configuration.Json
-        dotnet add ${{ env.Test_Project_Path }} package Microsoft.NET.Test.Sdk
-        dotnet add ${{ env.Test_Project_Path }} package NUnit
-        dotnet add ${{ env.Test_Project_Path }} package NUnit.Analyzers
-        dotnet add ${{ env.Test_Project_Path }} package NUnit3TestAdapter
+      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-dependencies.ps1"
 
     - name: Set Time Zone to Pacific Time
       run: tzutil /s "Pacific Standard Time"
