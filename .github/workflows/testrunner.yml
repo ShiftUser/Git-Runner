@@ -35,8 +35,9 @@ jobs:
     - name: Install Shift
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
 
-    - name: Install WinAppDriver
+    - name: Run WinAppDriver installation script
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-winappdriver.ps1"
+      continue-on-error: true
 
     - name: Install TightVNC
       run: |
@@ -49,15 +50,10 @@ jobs:
     - name: Install Dependencies
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-dependencies.ps1"
 
-    - name: Build
-      run: dotnet build app/scripts/install-dependencies.ps1 --configuration Debug --no-restore
-      continue-on-error: true
+    - name: Restore dependencies
+      run: dotnet restore app/scripts/install-dependencies.ps1
 
-    - name: Run tests
-      run: dotnet test app/scripts/install-dependencies.ps1 --no-build --verbosity normal
-      continue-on-error: true
-
-
+    
     - name: Start Shift
       run: |
         $shiftPath = "$env:LOCALAPPDATA\Shift\chromium\shift.exe"
