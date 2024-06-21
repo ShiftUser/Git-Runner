@@ -7,17 +7,19 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  build-and-test:
 
     strategy:
       matrix:
-        configuration: [Build, Test]
+        configuration: [Debug, Release]
 
     runs-on: windows-latest
 
     env:
       Solution_Name: app/SeleniumDocker.sln
       Test_Project_Path: app/src/SeleniumDocker.csproj
+      Wap_Project_Directory: app
+      Wap_Project_Path: app/.wapproj
 
     steps:
     - name: Checkout repository
@@ -28,7 +30,7 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v2
       with:
-          dotnet-version: "8.0.x"
+        dotnet-version: "8.0.x"
 
     - name: Install Shift
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
@@ -54,6 +56,7 @@ jobs:
     - name: Run tests
       run: dotnet test app/scripts/install-dependencies.ps1 --no-build --verbosity normal
       continue-on-error: true
+
 
     - name: Start Shift
       run: |
