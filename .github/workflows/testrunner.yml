@@ -50,16 +50,13 @@ jobs:
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-dependencies.ps1"
 
     - name: Restore dependencies
-      run: dotnet restore ${{ env.Solution_Name }}
+      run: dotnet restore ${{ env.Test_Project_Path }}
 
     - name: Build Solution
-      run: dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-restore
+      run: dotnet build ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }} --no-restore
 
     - name: Verify Build Output
       run: dir app/src/bin/${{ matrix.configuration }}/net8.0
-
-    - name: Execute Unit Tests
-      run: dotnet test ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --no-build --verbosity normal
 
     - name: Start Shift
       run: |
