@@ -1,4 +1,4 @@
-name: .NET Core Desktop
+name: .NET Core Desktop CI/CD
 
 on:
   push:
@@ -32,33 +32,11 @@ jobs:
           5.0.x
           8.0.x
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1
+    - name: Run Shift installation script
+      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
 
-    - name: Install Chocolatey
-      run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-        choco feature enable -n=allowGlobalConfirmation
-
-    - name: Install and Update Chocolatey Packages
-      run: |
-        choco upgrade 7zip.install awscli azcopy10 cmake.install gradle hg imagemagick.app InnoSetup kubernetes-cli kubernetes-helm nodejs.install -y --no-progress
-        Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-        & refreshenv
-        choco install microsoft-build-tools visualstudio2019buildtools visualstudio2022buildtools -y --no-progress --execution-timeout=1200
-        choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" -y --no-progress --execution-timeout=1200
-        choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.Universal" --add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools -y --no-progress --execution-timeout=1200
-        choco install windows-sdk-10.0 -y --no-progress --execution-timeout=1200
-
-    - name: Install WinAppDriver
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/microsoft/WinAppDriver/releases/download/v1.2.99/WindowsApplicationDriver-1.2.99-win-x86.exe" -OutFile "C:\WindowsApplicationDriver.exe"
-        Start-Process msiexec.exe -ArgumentList "/i C:\WindowsApplicationDriver.exe /quiet /norestart" -NoNewWindow -Wait
-
-    - name: Enable Developer Mode for WinAppDriver
-      run: Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1
+    - name: Run WinAppDriver installation script
+      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-winappdriver.ps1"
 
     - name: Install TightVNC
       run: |
@@ -79,18 +57,6 @@ jobs:
           Write-Output "Shift installation completed."
         } else {
           throw "Shift installer is not available."
-
-    - name: Install Google Chrome
-      run: |
-        Invoke-WebRequest -Uri "https://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile "C:\chrome_installer.exe"
-        Start-Process -FilePath "C:\chrome_installer.exe" -ArgumentList "/silent /install" -NoNewWindow -Wait
-
-    - name: Install ChromeDriver
-      run: |
-        $chromeDriverVersion = Invoke-RestMethod -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
-        Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$chromeDriverVersion/chromedriver_win32.zip" -OutFile "C:\chromedriver_win32.zip"
-        Expand-Archive -Path "C:\chromedriver_win32.zip" -DestinationPath "C:\chromedriver"
-        $env:Path += ";C:\chromedriver"
 
     - name: Set Time Zone to Pacific Time
       run: tzutil /s "Pacific Standard Time"
@@ -115,15 +81,6 @@ jobs:
 
     - name: Execute unit tests
       run: dotnet test app/SeleniumDocker.sln --configuration ${{ matrix.configuration }} --no-build --verbosity normal
-
-    - name: Install ngrok using Chocolatey
-      run: choco install ngrok -y
-
-    - name: Start ngrok
-      run: ngrok authtoken ${{ secrets.NGROK_AUTHTOKEN }}
-
-    - name: Start ngrok TCP tunnel
-      run: ngrok tcp 5900 &
 
     - name: Start Shift
       run: |
@@ -154,15 +111,6 @@ jobs:
       with:
         name: screenshot
         path: C:\Users\runneradmin\Desktop\screenshot.png
-
-    - name: Decode the pfx
-      run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_PFX }}")
-        $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
-        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
-
-    - name: Remove the pfx
-      run: Remove-Item -path $certificatePath
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
