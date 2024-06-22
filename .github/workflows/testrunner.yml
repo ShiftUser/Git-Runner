@@ -35,11 +35,15 @@ jobs:
     - name: Install Shift
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
 
-    - name: Run WinAppDriver installation script
-      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-winappdriver.ps1"
-      continue-on-error: true
-    
+    - name: Install WinAppDriver
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/microsoft/WinAppDriver/releases/download/v1.2.99/WindowsApplicationDriver-1.2.99-win-x86.exe" -OutFile "C:\WindowsApplicationDriver.exe"
+        Start-Process msiexec.exe -ArgumentList "/i C:\WindowsApplicationDriver.exe /quiet /norestart" -NoNewWindow -Wait
 
+    - name: Enable Developer Mode for WinAppDriver
+      run: Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1
+
+    
     - name: Install TightVNC
       run: |
         Invoke-WebRequest -Uri "https://www.tightvnc.com/download/2.8.84/tightvnc-2.8.84-gpl-setup-64bit.msi" -OutFile "C:\tightvnc.msi"
