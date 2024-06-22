@@ -30,18 +30,16 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: "8.0.x"
+        dotnet-version: "8.0.204"
+
+    - name: List installed .NET SDKs
+      run: dotnet --list-sdks
 
     - name: Install Shift
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
 
     - name: Install WinAppDriver
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/microsoft/WinAppDriver/releases/download/v1.2.99/WindowsApplicationDriver-1.2.99-win-x86.exe" -OutFile "C:\WindowsApplicationDriver.exe"
-        Start-Process msiexec.exe -ArgumentList "/i C:\WindowsApplicationDriver.exe /quiet /norestart" -NoNewWindow -Wait
-
-    - name: Enable Developer Mode for WinAppDriver
-      run: Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1
+      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-winappdriver.ps1"
 
     
     - name: Install TightVNC
@@ -68,15 +66,17 @@ jobs:
 
     - name: Start Shift
       run: |
-        $shiftPath = "$env:LOCALAPPDATA\Shift\chromium\shift.exe"
+        $shiftPath = "$env:LOCALAPPDATA\\Shift\\chromium\\shift.exe"
         if (Test-Path $shiftPath) {
           Start-Process -FilePath $shiftPath
           Write-Output "Shift started successfully."
         } else {
           Write-Output "Shift executable not found at $shiftPath."
+      shell: pwsh
 
     - name: Check if Shift is running
       run: Get-Process -Name shift -ErrorAction SilentlyContinue
+      shell: pwsh
 
     - name: Take Screenshot
       run: |
@@ -89,6 +89,7 @@ jobs:
         $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
         $bitmap.Save($screenshotPath, [System.Drawing.Imaging.ImageFormat]::Png)
         Write-Output "Screenshot taken: $screenshotPath"
+      shell: pwsh
 
     - name: Upload Screenshot
       uses: actions/upload-artifact@v2
