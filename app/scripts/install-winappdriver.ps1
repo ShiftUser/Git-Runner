@@ -1,5 +1,25 @@
 # install-winappdriver.ps1
 
+# Function to install Chocolatey if not already installed
+function Install-Chocolatey {
+    if (-Not (Get-Command choco -ErrorAction SilentlyContinue)) {
+        Write-Output "Installing Chocolatey"
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        choco feature enable -n=allowGlobalConfirmation
+    } else {
+        Write-Output "Chocolatey is already installed"
+    }
+}
+
+# Enable developer mode
+Write-Output "Enabling developer mode in Windows container"
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1
+
+# Install Chocolatey if needed
+Install-Chocolatey
+
 # Install WinAppDriver using Chocolatey
 Write-Output "Installing WinAppDriver using Chocolatey"
 $process = Start-Process -FilePath "choco" -ArgumentList "install winappdriver -y" -PassThru
@@ -22,7 +42,3 @@ if (Test-Path $winAppDriverPath) {
     Write-Error "Failed to install WinAppDriver."
     throw "Failed to install WinAppDriver."
 }
-
-
-Write-Output "Enabling developer mode in Windows container"
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1
