@@ -32,6 +32,7 @@ if (Test-Path $winAppDriverPath) {
 
     # Start WinAppDriver to verify it runs correctly
     try {
+        Write-Output "Starting WinAppDriver"
         Start-Process -FilePath $winAppDriverPath -ArgumentList "/silent" -NoNewWindow -Wait
         Write-Output "WinAppDriver started successfully."
     } catch {
@@ -41,4 +42,14 @@ if (Test-Path $winAppDriverPath) {
 } else {
     Write-Error "Failed to install WinAppDriver."
     throw "Failed to install WinAppDriver."
+}
+
+# Additional logging for troubleshooting
+Write-Output "Checking WinAppDriver process"
+$winAppDriverProcess = Get-Process -Name WinAppDriver -ErrorAction SilentlyContinue
+if ($null -ne $winAppDriverProcess) {
+    Write-Output "WinAppDriver process is running"
+} else {
+    Write-Error "WinAppDriver process is not running"
+    throw "WinAppDriver process failed to start"
 }

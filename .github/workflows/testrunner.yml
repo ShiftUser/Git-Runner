@@ -54,10 +54,10 @@ jobs:
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-dependencies.ps1"
 
     - name: Restore dependencies
-      run: dotnet restore ${{ env.Test_Project_Path }}
+      run: dotnet restore app/src/SeleniumDocker.csproj
 
     - name: Build Solution
-      run: dotnet build ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }} --no-restore
+      run: dotnet build app/src/SeleniumDocker.csproj --configuration Debug --no-restore
       continue-on-error: true
 
     - name: Verify Build Output
