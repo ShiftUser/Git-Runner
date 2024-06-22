@@ -56,10 +56,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore app/src/SeleniumDocker.csproj
 
-    - name: Build Solution
-      run: dotnet build app/src/SeleniumDocker.csproj --configuration Debug --no-restore
-      continue-on-error: true
-
     - name: Verify Build Output
       run: dir app/src/bin/${{ matrix.configuration }}/net8.0
       continue-on-error: true
