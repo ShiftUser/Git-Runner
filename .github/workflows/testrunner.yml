@@ -38,8 +38,7 @@ jobs:
     - name: Install Shift
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
 
-    - name: Install WinAppDriver
-      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-winappdriver.ps1"
+    
 
     
     - name: Install TightVNC
@@ -52,7 +51,7 @@ jobs:
 
     - name: Install Dependencies
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-dependencies.ps1"
-
+    
     - name: Restore dependencies
       run: dotnet restore app/src/SeleniumDocker.csproj
 
@@ -60,6 +59,9 @@ jobs:
       run: dir app/src/bin/${{ matrix.configuration }}/net8.0
       continue-on-error: true
 
+    - name: Install WinAppDriver
+      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-winappdriver.ps1"
+      
     - name: Start Shift
       run: |
         $shiftPath = "$env:LOCALAPPDATA\\Shift\\chromium\\shift.exe"
