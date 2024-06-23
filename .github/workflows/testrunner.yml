@@ -15,17 +15,9 @@ jobs:
 
     runs-on: windows-latest
 
-    env:
-      Solution_Name: app/SeleniumDocker.sln
-      Test_Project_Path: app/src/SeleniumDocker.csproj
-      Wap_Project_Directory: app
-      Wap_Project_Path: app/.wapproj
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v2
@@ -35,33 +27,32 @@ jobs:
     - name: List installed .NET SDKs
       run: dotnet --list-sdks
 
+
+    - name: Setup Winapp driver
+      run: |
+       curl -L -o WindowsApplicationDriver_1.2.1.msi
+        https://github.com/microsoft/WinAppDriver/releases/download/v1.2.1/WindowsApplicationDriver_1.2.1.msi
+        Start-Process msiexec "/i D:\a\wido-ultimate\wido-ultimate\WindowsApplicationDriver_1.2.1.msi /norestart /qn" -Wait
+
+    - name: Enable developer-mode
+      run: |
+       reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+
     - name: Install Shift
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
+      
+    - name: Enable developer-mode
+      run: | 
+       reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1" 
 
-    
+    - name: Add Winappdriver firewall rule
+      run: | 
+       netsh advfirewall firewall add rule name="WinAppDriver remote" dir=in action=allow protocol=TCP localport=4723
 
-    
-    - name: Install TightVNC
-      run: |
-        Invoke-WebRequest -Uri "https://www.tightvnc.com/download/2.8.84/tightvnc-2.8.84-gpl-setup-64bit.msi" -OutFile "C:\tightvnc.msi"
-        Start-Process msiexec.exe -ArgumentList "/i C:\tightvnc.msi /quiet /norestart" -NoNewWindow -Wait
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\TightVNC\Server" -Name "Password" -Value ([BitConverter]::ToString((New-Object Security.Cryptography.MD5CryptoServiceProvider).ComputeHash([System.Text.Encoding]::Unicode.GetBytes("your_password"))).Replace("-",""))
-        New-ItemProperty -Path "HKLM:\SOFTWARE\TightVNC\Server" -Name "AcceptRFBConnections" -Value 1 -PropertyType DWord -Force
-        Start-Service -Name "tvnserver"
 
     - name: Install Dependencies
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-dependencies.ps1"
     
-    - name: Restore dependencies
-      run: dotnet restore app/src/SeleniumDocker.csproj
-
-    - name: Verify Build Output
-      run: dir app/src/bin/${{ matrix.configuration }}/net8.0
-      continue-on-error: true
-
-    - name: Install WinAppDriver
-      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-winappdriver.ps1"
-      
     - name: Start Shift
       run: |
         $shiftPath = "$env:LOCALAPPDATA\\Shift\\chromium\\shift.exe"
@@ -95,8 +86,4 @@ jobs:
         name: screenshot
         path: C:\Users\runneradmin\Desktop\screenshot.png
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: MSIX Package
-        path: ${{ env.Wap_Project_Directory }}\AppPackages
+    
