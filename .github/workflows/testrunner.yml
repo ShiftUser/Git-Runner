@@ -28,11 +28,11 @@ jobs:
       run: dotnet --list-sdks
 
 
-    - name: Setup Winapp driver
+    - name: Setup WinAppDriver
       run: |
-       curl -L -o WindowsApplicationDriver_1.2.1.msi
-        https://github.com/microsoft/WinAppDriver/releases/download/v1.2.1/WindowsApplicationDriver_1.2.1.msi
-        Start-Process msiexec "/i D:\a\wido-ultimate\wido-ultimate\WindowsApplicationDriver_1.2.1.msi /norestart /qn" -Wait
+        curl -L -o WindowsApplicationDriver_1.2.1.msi https://github.com/microsoft/WinAppDriver/releases/download/v1.2.1/WindowsApplicationDriver_1.2.1.msi
+        Start-Process msiexec -ArgumentList "/i D:\a\wido-ultimate\wido-ultimate\WindowsApplicationDriver_1.2.1.msi /norestart /qn" -Wait
+      continue-on-error: true
 
     - name: Enable developer-mode
       run: |
@@ -40,10 +40,7 @@ jobs:
 
     - name: Install Shift
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
-      
-    - name: Enable developer-mode
-      run: | 
-       reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1" 
+      continue-on-error: true
 
     - name: Add Winappdriver firewall rule
       run: | 
@@ -52,7 +49,8 @@ jobs:
 
     - name: Install Dependencies
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-dependencies.ps1"
-    
+      continue-on-error: true
+      
     - name: Start Shift
       run: |
         $shiftPath = "$env:LOCALAPPDATA\\Shift\\chromium\\shift.exe"
