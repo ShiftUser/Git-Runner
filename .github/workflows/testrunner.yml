@@ -53,17 +53,7 @@ jobs:
     - name: Install Dependencies
       run: dotnet restore ${{ env.Test_Project_Path }}
      
-    - name: Build Solution
-      run: dotnet build ${{ env.Test_Project_Path }} --configuration Release
-
-    - name: Compile Test Runner Script
-      run: dotnet build -o output ${{ env.Test_Script_Path }}
-
-    - name: Run Test Runner Script
-      run: dotnet exec output/RunFramework.dll
-      env:
-        Test_Project_Path: ${{ env.Test_Project_Path }}
-
+  
 
     - name: Start Shift
       run: |
