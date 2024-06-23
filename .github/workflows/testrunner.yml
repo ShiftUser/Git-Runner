@@ -14,6 +14,7 @@ jobs:
     env:
      
       Test_Project_Path: app/src/SeleniumDocker.csproj
+      Test_Script_Path: app/scripts/RunFramework.cs
       
     steps:
     - name: Checkout repository
@@ -42,6 +43,8 @@ jobs:
       run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-shift.ps1"
       continue-on-error: true
 
+   
+
     - name: Add Winappdriver firewall rule
       run: | 
        netsh advfirewall firewall add rule name="WinAppDriver remote" dir=in action=allow protocol=TCP localport=4723
@@ -50,6 +53,17 @@ jobs:
     - name: Install Dependencies
       run: dotnet restore ${{ env.Test_Project_Path }}
      
+    - name: Build Solution
+      run: dotnet build ${{ env.Test_Project_Path }} --configuration Release
+
+    - name: Compile Test Runner Script
+      run: dotnet build -o output ${{ env.Test_Script_Path }}
+
+    - name: Run Test Runner Script
+      run: dotnet exec output/RunFramework.dll
+      env:
+        Test_Project_Path: ${{ env.Test_Project_Path }}
+
 
     - name: Start Shift
       run: |
