@@ -9,10 +9,6 @@ on:
 jobs:
   build-and-test:
 
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-
     runs-on: windows-latest
 
     env:
@@ -52,7 +48,7 @@ jobs:
 
 
     - name: Install Dependencies
-      run: powershell -ExecutionPolicy Bypass -File "${{ env.Test_Project_Path }}/../src/SeleniumDocker.csproj"
+      run: dotnet restore ${{ env.Test_Project_Path }}
      
 
     - name: Start Shift
