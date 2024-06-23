@@ -15,6 +15,10 @@ jobs:
 
     runs-on: windows-latest
 
+    env:
+     
+      Test_Project_Path: app/src/SeleniumDocker.csproj
+      
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -48,9 +52,9 @@ jobs:
 
 
     - name: Install Dependencies
-      run: powershell -ExecutionPolicy Bypass -File "app/scripts/install-dependencies.ps1"
-      continue-on-error: true
-      
+      run: powershell -ExecutionPolicy Bypass -File "${{ env.Test_Project_Path }}/../src/SeleniumDocker.csproj"
+     
+
     - name: Start Shift
       run: |
         $shiftPath = "$env:LOCALAPPDATA\\Shift\\chromium\\shift.exe"
